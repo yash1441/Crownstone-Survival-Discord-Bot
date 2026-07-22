@@ -53,7 +53,7 @@ module.exports = {
 			)
 			.setFooter({
 				text: "Crownstone Survival",
-				iconURL: "https://i.ibb.co/Fm4fttV/Logo.png",
+				iconURL: "https://i.ibb.co/zT7z1Bn2/image.png",
 			});
 
 		const bugReportButton = new ButtonBuilder()
