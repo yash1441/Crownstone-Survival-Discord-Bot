@@ -34,7 +34,6 @@ module.exports = {
 			discordUsername: interaction.user.username,
 			governorId: "-",
 			details: "-",
-			platform: "-",
 			deviceInfo: "-",
 			timeOfOccurence: "-",
 			screenshot: null,
@@ -58,25 +57,6 @@ module.exports = {
 				errors: ["time"],
 			});
 			return collected.first();
-		};
-
-		const collectSelect = async (content, menu) => {
-			const prompt = await thread.send({
-				content,
-				components: [new ActionRowBuilder().addComponents(menu)],
-			});
-			const selection = await prompt.awaitMessageComponent({
-				filter: (menuInteraction) =>
-					menuInteraction.user.id === userData.discordId,
-				componentType: ComponentType.StringSelect,
-				time: 3_00_000,
-				errors: ["time"],
-			});
-			await selection.update({
-				content: "Platform received. Next question.",
-				components: [],
-			});
-			return selection.values[0] || "-";
 		};
 
 		try {
@@ -116,25 +96,6 @@ module.exports = {
 		} catch {
 			return deleteThread(
 				"You did not provide detailed description in time. This thread will be deleted.",
-			);
-		}
-
-		try {
-			const platformMenu = new StringSelectMenuBuilder()
-				.setCustomId("translation-platform")
-				.setPlaceholder("Select your platform")
-				.addOptions(
-					{ label: "PC Edition", value: "PC Edition", emoji: "🖥️" },
-					{ label: "Mobile Version", value: "Mobile Version", emoji: "📱" },
-				);
-
-			userData.platform = await collectSelect(
-				blockQuote(bold("Which platform are you playing on?")),
-				platformMenu,
-			);
-		} catch {
-			return deleteThread(
-				"You did not choose your platform in time. This thread will be deleted.",
 			);
 		}
 
@@ -184,7 +145,6 @@ module.exports = {
 			.setDescription(bold("Details") + "\n" + userData.details)
 			.addFields(
 				{ name: "Governor ID", value: inlineCode(userData.governorId) },
-				{ name: "Platform", value: userData.platform },
 				{ name: "Device Info", value: userData.deviceInfo },
 				{ name: "Time of Occurence", value: userData.timeOfOccurence },
 			)
@@ -209,7 +169,6 @@ module.exports = {
 				interaction.user.id,
 				interaction.user.username,
 				userData.governorId,
-				userData.platform,
 				userData.details,
 				userData.deviceInfo,
 				userData.timeOfOccurence,

@@ -24,14 +24,12 @@ module.exports = {
 			discordUsername: interaction.user.username,
 			governorId: "-",
 			details: "-",
-			platform: "-",
 			rating: "-",
 			screenshot: null,
 		};
 
 		const collectorFilter = (message) =>
 			message.author.id === userData.discordId;
-		const isFocusGroup = interaction.channel.parentId === "1366682576223207424";
 
 		const sendAndCollectMessage = async (content, timeout) => {
 			await thread.send({ content });
@@ -78,47 +76,6 @@ module.exports = {
 			});
 		};
 
-		const askForPlatform = async () => {
-			const platformSelect = new StringSelectMenuBuilder()
-				.setCustomId("suggestion-platform")
-				.setPlaceholder("Select your platform")
-				.addOptions(
-					{
-						label: "PC Edition",
-						value: "PC Edition",
-						emoji: "🖥️",
-					},
-					{
-						label: "Mobile Version",
-						value: "Mobile Version",
-						emoji: "📱",
-					},
-				);
-
-			const platformPrompt = await thread.send({
-				content: blockQuote(
-					bold(
-						"Which platform are you playing on?\nPlease select one of the options below.",
-					),
-				),
-				components: [new ActionRowBuilder().addComponents(platformSelect)],
-			});
-
-			const platformInteraction = await platformPrompt.awaitMessageComponent({
-				filter: (menuInteraction) =>
-					menuInteraction.user.id === userData.discordId,
-				componentType: ComponentType.StringSelect,
-				time: 3_00_000,
-				errors: ["time"],
-			});
-
-			userData.platform = platformInteraction.values[0] || "-";
-			await platformInteraction.update({
-				content: "Platform received. Next question.",
-				components: [],
-			});
-		};
-
 		const askForRating = async () => {
 			const prompt =
 				blockQuote(
@@ -159,14 +116,6 @@ module.exports = {
 		}
 
 		try {
-			await askForPlatform();
-		} catch {
-			return deleteThread(
-				"You did not choose your platform in time. This thread will be deleted.",
-			);
-		}
-
-		try {
 			await askForRating();
 		} catch {
 			return deleteThread(
@@ -183,7 +132,6 @@ module.exports = {
 			.setDescription(bold("Details") + "\n" + userData.details)
 			.addFields(
 				{ name: "Governor ID", value: inlineCode(userData.governorId) },
-				{ name: "Platform", value: userData.platform },
 				{ name: "Rating", value: userData.rating },
 			)
 			.setColor("Green")
@@ -197,12 +145,8 @@ module.exports = {
 			userData.screenshotFunction = "-";
 		}
 
-		const channelId = isFocusGroup
-			? process.env.FOCUS_SUGGESTION_CHANNEL
-			: process.env.SUGGESTION_CHANNEL;
-		const sheetRange = isFocusGroup
-			? "Focus Group Suggestions!A2:Z"
-			: "Suggestion!A2:Z";
+		const channelId = process.env.SUGGESTION_CHANNEL;
+		const sheetRange = "Suggestion!A2:Z";
 		const channel = interaction.client.channels.cache.get(channelId);
 		if (!channel) throw new Error("Channel not found");
 
@@ -214,7 +158,6 @@ module.exports = {
 				interaction.user.id,
 				interaction.user.username,
 				userData.governorId,
-				userData.platform,
 				userData.details,
 				userData.rating,
 				date.format(new Date(), "MM-DD-YYYY HH:mm [GMT]ZZ"),

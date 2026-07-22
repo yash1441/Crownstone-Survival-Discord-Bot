@@ -1,8 +1,6 @@
 const {
 	EmbedBuilder,
 	ActionRowBuilder,
-	StringSelectMenuBuilder,
-	ComponentType,
 	inlineCode,
 	bold,
 	italic,
@@ -31,7 +29,6 @@ module.exports = {
 			discordUsername: interaction.user.username,
 			governorId: "-",
 			details: "-",
-			platform: "-",
 			deviceInfo: "-",
 			timeOfOccurence: "-",
 			screenshot: null,
@@ -55,25 +52,6 @@ module.exports = {
 				errors: ["time"],
 			});
 			return collected.first();
-		};
-
-		const askSelectQuestion = async (prompt, menu) => {
-			const promptMessage = await thread.send({
-				content: prompt,
-				components: [new ActionRowBuilder().addComponents(menu)],
-			});
-			const interactionResult = await promptMessage.awaitMessageComponent({
-				filter: (menuInteraction) =>
-					menuInteraction.user.id === userData.discordId,
-				componentType: ComponentType.StringSelect,
-				time: 3_00_000,
-				errors: ["time"],
-			});
-			await interactionResult.update({
-				content: "Platform received. Next question.",
-				components: [],
-			});
-			return interactionResult.values[0];
 		};
 
 		try {
@@ -109,25 +87,6 @@ module.exports = {
 		} catch {
 			return deleteThread(
 				"You did not provide detailed description in time. This thread will be deleted.",
-			);
-		}
-
-		try {
-			const platformMenu = new StringSelectMenuBuilder()
-				.setCustomId("bug-platform")
-				.setPlaceholder("Select your platform")
-				.addOptions(
-					{ label: "PC Edition", value: "PC Edition", emoji: "🖥️" },
-					{ label: "Mobile Version", value: "Mobile Version", emoji: "📱" },
-				);
-
-			userData.platform = await askSelectQuestion(
-				blockQuote(bold("Which platform are you playing on?")),
-				platformMenu,
-			);
-		} catch {
-			return deleteThread(
-				"You did not choose your platform in time. This thread will be deleted.",
 			);
 		}
 
@@ -175,7 +134,6 @@ module.exports = {
 			.setDescription(bold("Details") + "\n" + userData.details)
 			.addFields(
 				{ name: "Governor ID", value: inlineCode(userData.governorId) },
-				{ name: "Platform", value: userData.platform },
 				{ name: "Device Info", value: userData.deviceInfo },
 				{ name: "Time of Occurence", value: userData.timeOfOccurence },
 			)
@@ -199,7 +157,6 @@ module.exports = {
 				interaction.user.id,
 				interaction.user.username,
 				userData.governorId,
-				userData.platform,
 				userData.details,
 				userData.deviceInfo,
 				userData.timeOfOccurence,
